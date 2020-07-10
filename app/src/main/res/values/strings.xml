@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">Second Program</string>
+    <string name="question">Tehran is big city</string>
+    <string name="true_button">True</string>
+    <string name="false_button">False</string>
+    <string name="setting_button">Setting</string>
+    <string name="toast_correct_answer">Correct!!!</string>
+    <string name="toast_incorrect_answer">InCorrect!!!</string>
+    <string name="score">Score: </string>
+    <string name="done">Done </string>
+    <string name="cheat_button">Cheat </string>
+    <string name="error_empty">Please enter some questions</string>
+    <string name="error_notCheatable">This question is not cheatable</string>
+    <string name="cheat_true">The answer is True</string>
+    <string name="cheat_false">The answer is False</string>
+    <string name="setting_question_text_size">Select the size of question</string>
+    <string name="setting_text_size_button_small">Small(14sp)</string>
+    <string name="setting_text_size_button_medium">Medium(20sp)</string>
+    <string name="setting_text_size_button_large">Large(25sp)</string>
+    <string name="setting_button_back">Back</string>
+    <string name="setting_button_save">Save</string>
+    <string name="setting_background_color">select the background color</string>
+    <string name="setting_background_color_radio_button_white">White</string>
+    <string name="setting_background_color_radio_button_red">red</string>
+    <string name="setting_background_color_radio_button_blue">blue</string>
+    <string name="setting_background_color_radio_button_green">green</string>
+    <string name="toast_back_button_disable">Use My Back Button !!!!!</string>
+    <string name="text_timer">Timer:</string>
+    <string name="setting_hide_text">hide buttons</string>
+    <string name="setting_hide_true">True</string>
+    <string name="setting_hide_false">False</string>
+    <string name="setting_hide_first">first</string>
+    <string name="setting_hide_last">Last</string>
+    <string name="setting_hide_cheat">Cheat</string>
+    <string name="setting_hide_next">Next</string>
+    <string name="setting_hide_previous">Previous</string>
+
+
+</resources>
