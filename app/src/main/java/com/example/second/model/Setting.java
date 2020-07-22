@@ -8,6 +8,7 @@ public class Setting implements Serializable {
     private SettingBackGroundColor mSettingBackGroundColor = SettingBackGroundColor.WHITE;
     private HashMap<String, Boolean> mButtonVisibilities = new HashMap<>();
 
+
     public Setting() {
         mButtonVisibilities.put("first", true);
         mButtonVisibilities.put("last", true);

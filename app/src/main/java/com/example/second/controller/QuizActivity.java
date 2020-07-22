@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -19,6 +18,7 @@ import com.example.second.model.Question;
 import com.example.second.model.Setting;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -39,11 +39,11 @@ public class QuizActivity extends AppCompatActivity {
     private int questionIndex = 0;
     private int delay;
     private int timer;
+    private CountDownTimer countDownTimer;
     private List<Question> questionList;
     public static final String EXTRA_SETTING_CHANGED = "com.example.second.settingChanged";
     public static final int REQUEST_SETTING = 0;
     public static final int REQUEST_CHEAT = 1;
-
 
 
     @Override
@@ -53,10 +53,11 @@ public class QuizActivity extends AppCompatActivity {
         findAllView();
         IntentReceiver();
         mReset.setVisibility(View.INVISIBLE);
-        timer();
         if (savedInstanceState != null) {
             questionIndex = savedInstanceState.getInt("current_question");
             updateQuestion();
+            timer = savedInstanceState.getInt("timer");
+            timer().start();
             score = savedInstanceState.getInt("score");
             boolean[] answered = savedInstanceState.getBooleanArray("answered");
             for (int i = 0; i < answered.length; i++) {
@@ -66,9 +67,12 @@ public class QuizActivity extends AppCompatActivity {
             if (checkAllAnswered()) {
                 gameOver();
             }
+        } else {
+            timer().start();
         }
         mScore.setText(Integer.toString(score));
         setClickListener();
+        buttonView();
     }
 
 
@@ -82,36 +86,36 @@ public class QuizActivity extends AppCompatActivity {
         outState.putBooleanArray("answered", answered);
         outState.putInt("score", score);
         outState.putInt("current_question", questionIndex);
+        outState.putInt("timer", timer);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if( resultCode != RESULT_OK || data == null){
+        if (resultCode != RESULT_OK || data == null) {
             return;
         }
 
-        if(requestCode == REQUEST_CHEAT){
-
-        }
-        if(requestCode == REQUEST_SETTING) {
+        if (requestCode == REQUEST_SETTING) {
             setting = (Setting) data.getSerializableExtra(EXTRA_SETTING_CHANGED);
+            timer().start();
             mDoSettings();
         }
     }
 
-    private void timer() {
-        timer = delay;
+    private CountDownTimer timer() {
         mTimer.setText(Integer.toString(timer));
-        new CountDownTimer(delay*1000, 1000) {
+        countDownTimer = new CountDownTimer(timer * 1000, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 mTimer.setText(Integer.toString(timer--));
             }
+
             public void onFinish() {
                 gameOver();
             }
-        }.start();
+        };
+        return countDownTimer;
     }
 
     private void findAllView() {
@@ -145,9 +149,8 @@ public class QuizActivity extends AppCompatActivity {
                         Toast.makeText(QuizActivity.this, R.string.toast_incorrect_answer, Toast.LENGTH_SHORT).show();
                     }
                     questionList.get(questionIndex).setmAnswered(true);
-                    mButtonTrue.setVisibility(View.INVISIBLE);
-                    mButtonFalse.setVisibility(View.INVISIBLE);
                 }
+                buttonView();
                 if (checkAllAnswered()) {
                     gameOver();
                 }
@@ -164,8 +167,7 @@ public class QuizActivity extends AppCompatActivity {
                         correctAnswer();
                     }
                     questionList.get(questionIndex).setmAnswered(true);
-                    mButtonTrue.setVisibility(View.INVISIBLE);
-                    mButtonFalse.setVisibility(View.INVISIBLE);
+                    buttonView();
                 }
                 if (checkAllAnswered()) {
                     gameOver();
@@ -211,14 +213,14 @@ public class QuizActivity extends AppCompatActivity {
         mButtonCheat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(questionList.get(questionIndex).ismIsCheatable()) {
+                if (questionList.get(questionIndex).ismIsCheatable()) {
                     Intent intent = new Intent(QuizActivity.this, CheatActivity.class);
                     intent.putExtra(CheatActivity.EXTRA_ANSWER,
                             questionList.get(questionIndex).ismAnswerTrue());
-                    startActivityForResult(intent,10);
+                    startActivityForResult(intent, 10);
                     questionList.get(questionIndex).setmAnswered(true);
-                }else
-                    Toast.makeText(QuizActivity.this ,R.string.error_notCheatable,
+                } else
+                    Toast.makeText(QuizActivity.this, R.string.error_notCheatable,
                             Toast.LENGTH_SHORT).show();
             }
         });
@@ -228,7 +230,9 @@ public class QuizActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(QuizActivity.this, SettingActivity.class);
                 intent.putExtra(SettingActivity.EXTRA_SETTING, setting);
-                startActivityForResult(intent,REQUEST_SETTING);
+                countDownTimer.cancel();
+                startActivityForResult(intent, REQUEST_SETTING);
+
             }
         });
 
@@ -237,8 +241,8 @@ public class QuizActivity extends AppCompatActivity {
 
     private void buttonView() {
         if (questionList.get(questionIndex).ismIsCheatable()) {
-            mButtonFalse.setVisibility(View.VISIBLE);
-        }else
+            mButtonCheat.setVisibility(View.VISIBLE);
+        } else
             mButtonCheat.setVisibility(View.INVISIBLE);
 
         if (questionList.get(questionIndex).ismAnswered()) {
@@ -272,6 +276,7 @@ public class QuizActivity extends AppCompatActivity {
             mScore.setTextColor(Color.GREEN);
         mScore.setTextSize(25);
         mReset.setVisibility(View.VISIBLE);
+        countDownTimer.cancel();
         mReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -286,6 +291,8 @@ public class QuizActivity extends AppCompatActivity {
                 mReset.setVisibility(View.INVISIBLE);
                 score = 0;
                 questionIndex = 0;
+                timer = delay;
+                timer().start();
                 mScore.setText("0");
                 mScore.setTextColor(Color.BLACK);
                 for (Question q : questionList) {
@@ -308,6 +315,7 @@ public class QuizActivity extends AppCompatActivity {
     private void IntentReceiver() {
         Intent intent = getIntent();
         parsingAll(intent.getStringExtra(QuestionActivity.EXTRA_TEXT));
+        timer = delay;
     }
 
     private void parsingAll(String str) {
@@ -348,8 +356,8 @@ public class QuizActivity extends AppCompatActivity {
         updateQuestion();
     }
 
-    private void mDoSettings(){
-        switch (setting.getmSettingBackGroundColor()){
+    private void mDoSettings() {
+        switch (setting.getmSettingBackGroundColor()) {
             case GREEN:
                 findViewById(R.id.root).setBackgroundColor(getResources().getColor(R.color.green));
                 break;
@@ -363,7 +371,7 @@ public class QuizActivity extends AppCompatActivity {
                 findViewById(R.id.root).setBackgroundColor(getResources().getColor(R.color.white));
                 break;
         }
-        switch (setting.getmSettingTextSize()){
+        switch (setting.getmSettingTextSize()) {
             case LARGE:
                 mButtonTextNext.setTextSize(35);
                 break;
@@ -374,7 +382,55 @@ public class QuizActivity extends AppCompatActivity {
                 mButtonTextNext.setTextSize(20);
 
         }
-        
+        buttonVisibilities();
+    }
+
+    private void buttonVisibilities() {
+        HashMap<String, Boolean> buttonVisibilities = setting.getmButtonVisibilities();
+        if (buttonVisibilities.get("true")) {
+            if (!questionList.get(questionIndex).ismAnswered())
+                mButtonTrue.setVisibility(View.VISIBLE);
+        } else {
+            mButtonTrue.setVisibility(View.INVISIBLE);
+        }
+
+        if (buttonVisibilities.get("false")) {
+            if (!questionList.get(questionIndex).ismAnswered())
+                mButtonFalse.setVisibility(View.VISIBLE);
+        } else {
+            mButtonFalse.setVisibility(View.INVISIBLE);
+        }
+
+//        if (buttonVisibilities.get("cheat")) {
+//            if (!questionList.get(questionIndex).ismAnswered() && questionList.get(questionIndex).ismIsCheatable())
+//                mButtonCheat.setVisibility(View.VISIBLE);
+//        } else {
+//            mButtonCheat.setVisibility(View.INVISIBLE);
+//        }
+
+        if (buttonVisibilities.get("next")) {
+            mButtonTextNext.setVisibility(View.VISIBLE);
+        } else {
+            mButtonTextNext.setVisibility(View.INVISIBLE);
+        }
+
+        if (buttonVisibilities.get("previous")) {
+            mButtonPrevious.setVisibility(View.VISIBLE);
+        } else {
+            mButtonPrevious.setVisibility(View.INVISIBLE);
+        }
+
+        if (buttonVisibilities.get("first")) {
+            mButtonFirst.setVisibility(View.VISIBLE);
+        } else {
+            mButtonFirst.setVisibility(View.INVISIBLE);
+        }
+
+        if (buttonVisibilities.get("last")) {
+            mButtonLast.setVisibility(View.VISIBLE);
+        } else {
+            mButtonLast.setVisibility(View.INVISIBLE);
+        }
     }
 
 }

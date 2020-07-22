@@ -17,10 +17,13 @@ public class CheatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cheat);
+        mAnswer = findViewById(R.id.cheat_text);
         Intent intent = getIntent();
         if(intent.getBooleanExtra(EXTRA_ANSWER,false)){
             mAnswer.setText(R.string.cheat_true);
         }else
             mAnswer.setText(R.string.cheat_false);
     }
+
+
 }
